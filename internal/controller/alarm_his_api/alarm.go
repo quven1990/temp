@@ -59,6 +59,12 @@ func GetDevHis(r *ghttp.Request) {
 	// 调用外部服务
 	result, err := externalService.GetDevHis(ctx, positionId, beginTime, endTime, pageIndex, pageSize)
 	if err != nil {
+		// 如果是业务错误响应（外部接口返回的错误），原样返回
+		if errorResponse, ok := err.(*service.BusinessError); ok {
+			r.Response.WriteJson(errorResponse.Response)
+			return
+		}
+		// 其他错误（网络错误、解析错误等）返回500
 		r.Response.WriteJson(g.Map{
 			"code":    500,
 			"message": err.Error(),
